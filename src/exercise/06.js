@@ -32,6 +32,26 @@ const SUSPENSE_CONFIG = {
 
 const pokemonResourceCache = {}
 
+const usePokemonResource = ({pokemonName}) => {
+  const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
+  const [pokemonResource, setPokemonResource] = React.useState(null)
+
+  React.useEffect(() => {
+    if (!pokemonName) {
+      setPokemonResource(null)
+      return
+    }
+    startTransition(() => {
+      setPokemonResource(getPokemonResource(pokemonName))
+    })
+  }, [pokemonName, startTransition])
+
+  return {
+    isPending,
+    pokemonResource
+  }
+}
+
 function getPokemonResource(name) {
   const lowerName = name.toLowerCase()
   let resource = pokemonResourceCache[lowerName]
@@ -50,22 +70,7 @@ function createPokemonResource(pokemonName) {
 
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
-  // 🐨 move these two lines to a custom hook called usePokemonResource
-  const [startTransition, isPending] = React.useTransition(SUSPENSE_CONFIG)
-  const [pokemonResource, setPokemonResource] = React.useState(null)
-  // 🐨 call usePokemonResource with the pokemonName.
-  //    It should return both the pokemonResource and isPending
-
-  // 🐨 move this useEffect call your custom usePokemonResource hook
-  React.useEffect(() => {
-    if (!pokemonName) {
-      setPokemonResource(null)
-      return
-    }
-    startTransition(() => {
-      setPokemonResource(getPokemonResource(pokemonName))
-    })
-  }, [pokemonName, startTransition])
+  const [pokemonResource, isPending] = usePokemonResource(pokemonName)
 
   function handleSubmit(newPokemonName) {
     setPokemonName(newPokemonName)
